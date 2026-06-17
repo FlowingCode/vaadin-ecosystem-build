@@ -47,6 +47,7 @@ public class EcosystemBuild implements Callable<Integer> {
         new AddonProject() {{
             name = "flow-viritin";
             repoUrl = "https://github.com/viritin/flow-viritin";
+            versionOverrides = Map.of("25.1.*", new VersionConfig() {{ branch = "v25_1"; }});
         }},
         new AddonProject() {{
             name = "dramafinder";
