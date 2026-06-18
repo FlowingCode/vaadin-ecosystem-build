@@ -4,7 +4,7 @@
 
 **[View Build Status Dashboard](https://ecosystembuild.parttio.org)** - Live results for all tested Vaadin versions
 
-This project continuously validates that Vaadin add-ons and applications build successfully against the latest Vaadin framework versions, including unreleased snapshots. It helps detect compatibility issues early, before they affect end users.
+This project continuously validates that certain Vaadin add-ons and applications build successfully against the latest Vaadin framework versions, including unreleased snapshots. It helps us to detect compatibility issues early, before they affect end users.
 
 ## Add Your Project
 
