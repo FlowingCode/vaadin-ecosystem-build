@@ -236,6 +236,7 @@ public class EcosystemBuild implements Callable<Integer> {
 
     private boolean useCustomSettings = false;
     private String cachedMavenMetadataXml;
+    private String cachedArchetypeMetadataXml;
     private Path versionOutputPath;  // Version-specific output directory for logs and reports
 
     // Project types
@@ -952,12 +953,13 @@ public class EcosystemBuild implements Callable<Integer> {
 
             // Generate project from archetype
             System.out.println("  " + DIM + "📦 Generating project from Vaadin archetype..." + RESET);
+            String archetypeVersion = getArchetypeVersion(vaadinVersion);
             List<String> archetypeArgs = List.of(
                     "archetype:generate",
                     "-B",  // Batch mode
                     "-DarchetypeGroupId=com.vaadin",
                     "-DarchetypeArtifactId=vaadin-archetype-application",
-                    "-DarchetypeVersion=LATEST",
+                    "-DarchetypeVersion=" + archetypeVersion,
                     "-DgroupId=com.example",
                     "-DartifactId=smoke-test",
                     "-Dversion=1.0-SNAPSHOT"
@@ -1544,6 +1546,27 @@ public class EcosystemBuild implements Callable<Integer> {
         return null;
     }
 
+    private String fetchArchetypeMetadataXml() {
+        if (cachedArchetypeMetadataXml != null) return cachedArchetypeMetadataXml;
+        try {
+            HttpClient client = HttpClient.newBuilder()
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://repo1.maven.org/maven2/com/vaadin/vaadin-archetype-application/maven-metadata.xml"))
+                    .timeout(java.time.Duration.ofSeconds(10))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                cachedArchetypeMetadataXml = response.body();
+                return cachedArchetypeMetadataXml;
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️  Warning: Could not fetch Archetype metadata: " + e.getMessage());
+        }
+        return null;
+    }
+
     private List<String> parseVersionsList(String xml) {
         List<String> versions = new ArrayList<>();
         Matcher matcher = Pattern.compile("<version>([^<]+)</version>").matcher(xml);
@@ -1605,6 +1628,73 @@ public class EcosystemBuild implements Callable<Integer> {
         } catch (Exception e) {
             System.err.println("⚠️  Warning: Could not fetch pre-release version: " + e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Finds the appropriate archetype version for a given Vaadin version.
+     * Matches the minor version series (e.g., 25.1.x -> latest 25.1.x archetype).
+     * For snapshots, returns the latest release from the same minor series.
+     */
+    private String getArchetypeVersion(String vaadinVersion) {
+        try {
+            String xml = fetchArchetypeMetadataXml();
+            if (xml == null) {
+                System.err.println("⚠️  Warning: Could not fetch archetype versions, using LATEST");
+                return "LATEST";
+            }
+
+            List<String> archetypeVersions = parseVersionsList(xml);
+            int[] targetMajorMinor = extractMajorMinor(vaadinVersion);
+            int targetMajor = targetMajorMinor[0];
+            int targetMinor = targetMajorMinor[1];
+
+            String latestMatching = null;
+            Pattern releasePattern = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
+
+            for (String v : archetypeVersions) {
+                // Skip non-release versions (snapshots, betas, etc.)
+                if (!releasePattern.matcher(v).matches()) continue;
+
+                int[] mm = extractMajorMinor(v);
+                int major = mm[0];
+                int minor = mm[1];
+
+                // Match same major.minor series
+                if (major == targetMajor && minor == targetMinor) {
+                    if (latestMatching == null || compareVersions(v, latestMatching) > 0) {
+                        latestMatching = v;
+                    }
+                }
+            }
+
+            if (latestMatching != null) {
+                System.out.println("  ℹ️  Using archetype version: " + latestMatching + " (for Vaadin " + vaadinVersion + ")");
+                return latestMatching;
+            }
+
+            // Fallback: try to find any matching major version
+            for (String v : archetypeVersions) {
+                if (!releasePattern.matcher(v).matches()) continue;
+                int[] mm = extractMajorMinor(v);
+                if (mm[0] == targetMajor) {
+                    if (latestMatching == null || compareVersions(v, latestMatching) > 0) {
+                        latestMatching = v;
+                    }
+                }
+            }
+
+            if (latestMatching != null) {
+                System.out.println("  ℹ️  Using fallback archetype version: " + latestMatching + " (for Vaadin " + vaadinVersion + ")");
+                return latestMatching;
+            }
+
+            System.err.println("⚠️  Warning: No matching archetype version found for Vaadin " + vaadinVersion + ", using LATEST");
+            return "LATEST";
+
+        } catch (Exception e) {
+            System.err.println("⚠️  Warning: Could not determine archetype version: " + e.getMessage());
+            return "LATEST";
         }
     }
 
