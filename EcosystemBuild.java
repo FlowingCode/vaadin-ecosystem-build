@@ -12,6 +12,7 @@ import java.net.http.*;
 import java.nio.file.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1748,6 +1749,10 @@ public class EcosystemBuild implements Callable<Integer> {
         }
         if (currentlyFailing.isEmpty()) return;
 
+        // Only consider archives from the last 7 days to avoid marking old fixed issues as flaky
+        Instant cutoffTime = Instant.now().minus(7, ChronoUnit.DAYS);
+        DateTimeFormatter archiveFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+
         try (var dirs = Files.list(archivesDir)) {
             List<Path> archiveDirs = dirs
                     .filter(Files::isDirectory)
@@ -1755,6 +1760,26 @@ public class EcosystemBuild implements Callable<Integer> {
                     .toList();
 
             for (Path dir : archiveDirs) {
+                // Skip archives older than 7 days to avoid marking old fixed issues as flaky
+                String dirName = dir.getFileName().toString();
+                Instant archiveTime = null;
+                try {
+                    LocalDateTime dateTime = LocalDateTime.parse(dirName, archiveFormatter);
+                    archiveTime = dateTime.atZone(ZoneId.systemDefault()).toInstant();
+                } catch (Exception e) {
+                    // If directory name doesn't match expected format, skip it or use file system time
+                    try {
+                        archiveTime = Files.getLastModifiedTime(dir).toInstant();
+                    } catch (IOException ex) {
+                        System.err.println("Warning: Could not determine archive time for " + dirName + ": " + ex.getMessage());
+                    }
+                }
+                
+                // Skip archives older than cutoff time
+                if (archiveTime != null && archiveTime.isBefore(cutoffTime)) {
+                    break; // Since archives are sorted newest first, we can stop here
+                }
+                
                 Path failedFile = dir.resolve("failed-projects.txt");
                 Set<String> archivedFailures = new HashSet<>();
                 if (Files.exists(failedFile)) {
