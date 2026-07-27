@@ -1459,6 +1459,16 @@ public class EcosystemBuild implements Callable<Integer> {
 
         process.waitFor(); // Ensure process is fully terminated
         if (timedOut.get()) {
+            // Write timeout message to log file
+            try (BufferedWriter timeoutWriter = Files.newBufferedWriter(logFile, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+                timeoutWriter.write("\n\n=== BUILD TIMEOUT ===");
+                timeoutWriter.newLine();
+                timeoutWriter.write("Build was forcibly terminated after " + timeout + " minutes of inactivity.");
+                timeoutWriter.newLine();
+                timeoutWriter.flush();
+            } catch (IOException e) {
+                System.err.println("Failed to write timeout message to log file: " + e.getMessage());
+            }
             System.out.println(RED + "⏱️  Build timed out after " + timeout + " minutes" + RESET);
             return -1; // Timeout exit code
         }
@@ -1501,6 +1511,16 @@ public class EcosystemBuild implements Callable<Integer> {
         process.waitFor(); // Ensure process is fully terminated
 
         if (timedOut.get()) {
+            // Write timeout message to log file
+            try (BufferedWriter timeoutWriter = Files.newBufferedWriter(logFile, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+                timeoutWriter.write("\n\n=== BUILD TIMEOUT ===");
+                timeoutWriter.newLine();
+                timeoutWriter.write("Build was forcibly terminated after " + timeout + " minutes of inactivity.");
+                timeoutWriter.newLine();
+                timeoutWriter.flush();
+            } catch (IOException e) {
+                System.err.println("Failed to write timeout message to log file: " + e.getMessage());
+            }
             return -1; // Timeout exit code
         }
         return process.exitValue();
