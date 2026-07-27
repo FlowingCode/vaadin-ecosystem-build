@@ -2024,6 +2024,10 @@ public class EcosystemBuild implements Callable<Integer> {
         // Wildcard match (25.* matches 25.0.0, 25.1-SNAPSHOT, etc.)
         if (pattern.endsWith("*")) {
             String prefix = pattern.substring(0, pattern.length() - 1);
+            // Remove trailing dot or dash from prefix for better matching
+            if (prefix.endsWith(".") || prefix.endsWith("-")) {
+                prefix = prefix.substring(0, prefix.length() - 1);
+            }
             return version.startsWith(prefix);
         }
 
