@@ -195,6 +195,7 @@ public class EcosystemBuild implements Callable<Integer> {
             name = "xsd-validator-ui";
             repoUrl = "https://github.com/rucko24/xsd-validator-ui";
             notifyUsers = List.of("rucko24");
+            versionOverrides = Map.of("25.1.*", new VersionConfig() {{ branch = "969a10c50e842db7f39a64b0c72837dab65d0182"; }});
         }}
     );
 
