@@ -26,6 +26,9 @@ public class EcosystemBuild implements Callable<Integer> {
     // PROJECT CONFIGURATION - Edit these lists to add/remove projects
     // ============================================================
 
+    // Default Java version to use when projects don't specify their own
+    private static final String DEFAULT_JAVA_VERSION = "25-tem";
+
     // Default version overrides applied to all projects (unless they specify their own)
     // Projects can override by specifying their own versionOverrides for the same pattern
     private static final Map<String, VersionConfig> DEFAULT_VERSION_OVERRIDES = Map.of(
@@ -431,7 +434,8 @@ public class EcosystemBuild implements Callable<Integer> {
             // Apply version-specific overrides if any
             VersionConfig vc = findVersionConfig(addon.versionOverrides, vaadinVersion);
             String branch = (vc != null && vc.branch != null) ? vc.branch : addon.branch;
-            String javaVersion = (vc != null && vc.javaVersion != null) ? vc.javaVersion : addon.javaVersion;
+            String javaVersion = (vc != null && vc.javaVersion != null) ? vc.javaVersion : 
+                              (addon.javaVersion != null ? addon.javaVersion : DEFAULT_JAVA_VERSION);
             List<String> extraMvnArgs = (vc != null && vc.extraMvnArgs != null) ? vc.extraMvnArgs : addon.extraMvnArgs;
             boolean ignored = (vc != null && vc.ignored) || addon.ignored;
             String ignoreReason = (vc != null && vc.ignored) ? vc.ignoreReason : addon.ignoreReason;
@@ -445,7 +449,8 @@ public class EcosystemBuild implements Callable<Integer> {
             // Apply version-specific overrides if any
             VersionConfig vc = findVersionConfig(app.versionOverrides, vaadinVersion);
             String branch = (vc != null && vc.branch != null) ? vc.branch : app.branch;
-            String javaVersion = (vc != null && vc.javaVersion != null) ? vc.javaVersion : app.javaVersion;
+            String javaVersion = (vc != null && vc.javaVersion != null) ? vc.javaVersion : 
+                              (app.javaVersion != null ? app.javaVersion : DEFAULT_JAVA_VERSION);
             List<String> extraMvnArgs = (vc != null && vc.extraMvnArgs != null) ? vc.extraMvnArgs : app.extraMvnArgs;
             boolean ignored = (vc != null && vc.ignored) || app.ignored;
             String ignoreReason = (vc != null && vc.ignored) ? vc.ignoreReason : app.ignoreReason;
@@ -971,7 +976,7 @@ public class EcosystemBuild implements Callable<Integer> {
             mvnCmd.addAll(getCommonMvnArgs());
             System.out.println("  " + DIM + "$ " + String.join(" ", mvnCmd) + RESET);
 
-            int archetypeResult = runMavenSilent(workPath, logFile, null, archetypeArgs);
+            int archetypeResult = runMavenSilent(workPath, logFile, DEFAULT_JAVA_VERSION, archetypeArgs);
             if (archetypeResult != 0) {
                 System.out.println("  " + RED + "❌ Archetype generation failed" + RESET);
                 return new TestResult(name, ProjectType.SMOKE_TEST, false, "Archetype generation failed", elapsed(startTime), logFile);
@@ -985,7 +990,7 @@ public class EcosystemBuild implements Callable<Integer> {
             setPropertyArgs.add("-DnewVersion=" + vaadinVersion);
             setPropertyArgs.add("-DgenerateBackupPoms=false");
             setPropertyArgs.addAll(getCommonMvnArgs());
-            runMavenSilent(smokeTestPath, logFile, null, setPropertyArgs);
+            runMavenSilent(smokeTestPath, logFile, DEFAULT_JAVA_VERSION, setPropertyArgs);
 
             // Run verify to download all dependencies and compile
             System.out.println("  " + DIM + "🔨 Building smoke test project..." + RESET);
@@ -1001,7 +1006,7 @@ public class EcosystemBuild implements Callable<Integer> {
             verifyCmdDisplay.addAll(verifyArgs);
             System.out.println("  " + DIM + "$ " + String.join(" ", verifyCmdDisplay) + RESET);
 
-            int verifyResult = runMavenSilent(smokeTestPath, logFile, null, verifyArgs);
+            int verifyResult = runMavenSilent(smokeTestPath, logFile, DEFAULT_JAVA_VERSION, verifyArgs);
             if (verifyResult != 0) {
                 System.out.println("  " + RED + "❌ Smoke test build failed" + RESET);
                 return new TestResult(name, ProjectType.SMOKE_TEST, false, "Build failed", elapsed(startTime), logFile);
