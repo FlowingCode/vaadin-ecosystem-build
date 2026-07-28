@@ -104,7 +104,6 @@ public class EcosystemBuild implements Callable<Integer> {
             name = "Badge List Add-on";
             repoUrl = "https://github.com/FlowingCode/BadgeList";
             notifyUsers = List.of("javier-godoy", "scardanzan", "paodb");
-            javaVersion = "21-tem";
             versionOverrides = Map.of("24.*", new VersionConfig() {{ branch = "1.x"; }}, "25.*", new VersionConfig() {{ branch = "1.x"; profile = "v25"; }}, "25.1+", new VersionConfig());
         }},
         new AddonProject() {{
@@ -117,7 +116,6 @@ public class EcosystemBuild implements Callable<Integer> {
             name = "Chat Assistant Add-on";
             repoUrl = "https://github.com/FlowingCode/ChatAssistant";
             notifyUsers = List.of("javier-godoy", "scardanzan", "paodb");
-            javaVersion = "21-tem";
             versionOverrides = Map.of("24.*", new VersionConfig(), "25.*", new VersionConfig() {{ profile = "v25"; }});
         }},
         new AddonProject() {{
@@ -142,21 +140,18 @@ public class EcosystemBuild implements Callable<Integer> {
             name = "FontAwesomeIronIconset Add-on";
             repoUrl = "https://github.com/FlowingCode/FontAwesomeIronIconset";
             notifyUsers = List.of("javier-godoy", "scardanzan", "paodb");
-            javaVersion = "21-tem";
             versionOverrides = Map.of("24.*", new VersionConfig(), "25.*", new VersionConfig() {{ profile = "v25"; }});
         }},
         new AddonProject() {{
             name = "Google Maps Add-on";
             repoUrl = "https://github.com/FlowingCode/GoogleMapsAddon";
             notifyUsers = List.of("javier-godoy", "scardanzan", "paodb");
-            javaVersion = "21-tem";
             versionOverrides = Map.of("24.*", new VersionConfig() {{ profile = "v24"; }}, "25.*", new VersionConfig() {{ profile = "v25"; }});
         }},
         new AddonProject() {{
             name = "Grid Exporter Add-on";
             repoUrl = "https://github.com/FlowingCode/GridExporterAddon";
             notifyUsers = List.of("javier-godoy", "scardanzan", "paodb");
-            javaVersion = "21-tem";
             versionOverrides = Map.of("24.*", new VersionConfig(), "25.*", new VersionConfig() {{ profile = "v25"; }});
         }},
         new AddonProject() {{
@@ -175,14 +170,12 @@ public class EcosystemBuild implements Callable<Integer> {
             name = "TwinColGrid Add-on";
             repoUrl = "https://github.com/FlowingCode/TwinColGrid";
             notifyUsers = List.of("javier-godoy", "scardanzan", "paodb");
-            javaVersion = "21-tem";
             versionOverrides = Map.of("24.*", new VersionConfig(), "25.*", new VersionConfig() {{ profile = "v25"; }});
         }},
         new AddonProject() {{
             name = "Year-Month Calendar Add-on";
             repoUrl = "https://github.com/FlowingCode/YearMonthCalendarAddon";
             notifyUsers = List.of("javier-godoy", "scardanzan", "paodb");
-            javaVersion = "21-tem";
             versionOverrides = Map.of("24.*", new VersionConfig(), "25.*", new VersionConfig() {{ profile = "v25"; }});
         }}
     );
